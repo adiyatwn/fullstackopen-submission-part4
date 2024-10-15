@@ -94,6 +94,38 @@ test('if title or url mising, respond with status code 400', async () => {
   assert.strictEqual(blogsInDb.length, helper.initialBlogs.length)
 })
 
+test('delete blog post', async () => {
+  const blogBefore = await helper.blogsInDb()
+  const firstPostId = blogBefore[0].id
+
+  await api.delete(`/api/blogs/${firstPostId}`)
+
+  const blogAfter = await helper.blogsInDb()
+  const ids = blogAfter.map(b => b.id)
+
+  assert.strictEqual(blogAfter.length, helper.initialBlogs.length - 1)
+  assert(!ids.includes(firstPostId))
+})
+
+test('update an individual blog post', async () => {
+  const newBlog = {
+    title: 'Updated post',
+    author: 'Updated author',
+    url: 'https://example.com',
+    likes: 15
+  }
+
+  const blogBefore = await helper.blogsInDb()
+  const firstPostId = blogBefore[0].id
+
+  await api.put(`/api/blogs/${firstPostId}`).send(newBlog)
+
+  const blogAfter = await helper.blogsInDb()
+  const titles = blogAfter.map(b => b.title)
+
+  assert(titles.includes('Updated post'))
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
