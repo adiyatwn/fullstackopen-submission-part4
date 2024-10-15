@@ -2,18 +2,11 @@ const blogRouter = require('express').Router()
 const jwt = require('jsonwebtoken')
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const middleware = require('../utils/middleware')
 
-const getTokenFrom = request => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '');
-  }
-  return null
-}
 
 blogRouter.get('/', async (request, response, next) => {
   try {
-    await randomId()
     const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
     response.json(blogs)
   } catch (error) {
@@ -21,15 +14,11 @@ blogRouter.get('/', async (request, response, next) => {
   }
 })
 
-blogRouter.post('/', async (request, response, next) => {
+blogRouter.post('/', middleware.userExtractor, async (request, response, next) => {
   const body = request.body
 
   try {
-    const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
-    }
-    const user = await User.findById(decodedToken.id)
+    const user = request.user
 
     const blog = new Blog({
       title: body.title,
@@ -52,18 +41,21 @@ blogRouter.post('/', async (request, response, next) => {
   }
 })
 
-blogRouter.delete('/deleteAll', async (request, response) => {
-  await Blog.deleteMany({})
-  response.status(204).end()
-})
-
-blogRouter.delete('/:id', async (request, response, next) => {
+blogRouter.delete('/:id', middleware.userExtractor, async (request, response, next) => {
   const id = request.params.id
 
   try {
-    await Blog.findByIdAndDelete(id)
-    response.status(204).end()
+    const user = request.user
+    const blog = await Blog.findById(id)
+
+    if (blog.user.toString() === user._id.toString()) {
+      await Blog.findByIdAndDelete(id)
+      return response.status(204).end()
+    } else {
+      return response.status(401).json({ error: 'token invalid' })
+    }
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })

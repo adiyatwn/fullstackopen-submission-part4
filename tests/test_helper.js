@@ -18,14 +18,16 @@ const initialBlogs = [
 
 const initialUsers = [
   {
-    "username": "hellas",
-    "name": "Arto Hellas",
-    "hashedPassword": "hellas"
+    id: "12345",
+    username: "hellas",
+    name: "Arto Hellas",
+    hashedPassword: "hellas"
   },
   {
-    "username": "mluukkai",
-    "name": "Matti Luukkainen",
-    "hashedPassword": "mluukkai"
+    id: "54321",
+    username: "mluukkai",
+    name: "Matti Luukkainen",
+    hashedPassword: "mluukkai"
   },
 ]
 
