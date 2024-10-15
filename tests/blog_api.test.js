@@ -50,6 +50,24 @@ test('unique identifier property of blog is named id', async () => {
   assert(!objKey.includes('_id') && objKey.includes('id'))
 })
 
+test('post a blog post', async () => {
+  const newBlog = {
+    title: "Test",
+    author: "Blog post test",
+    url: "https://test.com/",
+    likes: 0,
+  }
+
+  await api.post('/api/blogs').send(newBlog).expect(201).expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const contents = response.body.map(b => b.title)
+
+  assert.strictEqual(response.body.length, initialBlogs.length + 1)
+  assert(contents.includes('Test'))
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
