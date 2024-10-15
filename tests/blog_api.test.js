@@ -86,6 +86,26 @@ test('if the likes property is missing, default value is 0', async () => {
   assert(likes[likes.length - 1] === 0)
 })
 
+test('if title or url mising, respond with status code 400', async () => {
+  const missingTitleBlog = {
+    author: "test author",
+    url: "https://test.com/",
+    likes: 10
+  }
+
+  const missingUrlBlog = {
+    title: "missing url",
+    author: "test author",
+    likes: 10
+  }
+
+  await api.post('/api/blogs').send(missingTitleBlog).expect(400)
+  await api.post('/api/blogs').send(missingUrlBlog).expect(400)
+
+  const response = await api.get('/api/blogs')
+  assert.strictEqual(response.body.length, initialBlogs.length)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
