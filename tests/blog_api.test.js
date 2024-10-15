@@ -68,6 +68,24 @@ test('post a blog post', async () => {
   assert(contents.includes('Test'))
 })
 
+test('if the likes property is missing, default value is 0', async () => {
+  const newBlog = {
+    title: "missing likes",
+    author: "Missing likes",
+    url: "https://test.com/",
+    //likes: 0,  //missing
+  }
+
+  await api.post('/api/blogs').send(newBlog).expect(201).expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const likes = response.body.map(b => b.likes)
+
+  assert.strictEqual(response.body.length, initialBlogs.length + 1)
+  assert(likes[likes.length - 1] === 0)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
